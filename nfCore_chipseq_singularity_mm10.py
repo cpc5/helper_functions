@@ -25,7 +25,7 @@ parser.add_argument("-o", "--out", type=str, default="/project/imoskowitz/shared
     help="specify output destination, but you better not unless youre sure!")
 
 args = parser.parse_args()
-yaml_file = "/project/imoskowitz/shared/software/assets/nfcore_atacseq_params_finalrun.yaml"
+yaml_file = "/project/imoskowitz/shared/software/assets/nfcore_chipseq_params_mm10.yaml"
 
 sample_sheet = pd.read_excel(args.ssheet)
 sample_sheet = process_chip_sample_sheet(sample_sheet)
@@ -38,16 +38,16 @@ if len(args.msheet) < 2:
         os.makedirs(args.out+"/"+seqrunid)
     merged_df = pd.merge(processed_dataframe, sample_sheet, on='sampleID', how='left')
     if 'fastq_2' in merged_df.columns:
-        merged_df = merged_df[['sample', 'fastq_1', 'fastq_2', 'replicate','sampleID']]
+        merged_df = merged_df[['sample', 'fastq_1', 'fastq_2','replicate','antibody','control','control_replicate','sampleID']]
     else:
-        merged_df = merged_df[['sample', 'fastq_1', 'replicate','sampleID']]
+        merged_df = merged_df[['sample', 'fastq_1', 'replicate','antibody','control','control_replicate','sampleID']]
     merged_df.to_csv(args.out + "/" + seqrunid + "/" + "sample.sheet.csv", sep=',', index=False)
     input_path = args.out+"/"+seqrunid+"/"+"sample.sheet.csv"
     output_dir = args.out+"/"+seqrunid
     out_yaml_file = args.out+"/"+seqrunid+'/atacseq_params.yaml'
     update_yaml(yaml_file, input_path, output_dir, out_yaml_file)
     slurm_writer(pbsDir = args.out+"/"+seqrunid, 
-    seed = "nfcore_bulk_atacseq_run_"+date.today().strftime("%y%m%d"), 
+    seed = "nfcore_bulk_chipseq_run_"+date.today().strftime("%y%m%d"), 
     nodes = str(1),
     walltime = str(24), 
     processors = str(4),
@@ -60,8 +60,8 @@ if len(args.msheet) < 2:
     'export NXF_TEMP="/scratch/midway3/'+os.getlogin()+'"\n\n'+
     'export NXF_SINGULARITY_CACHEDIR="/project/imoskowitz/shared/software/singularityImages"', 
     shell = "nextflow run \\\n"+
-    "/project/imoskowitz/shared/software/nf-core-atacseq_2.1.2/2_1_2 -work-dir "+'/scratch/midway3/'+os.getlogin()+"/working_"+seqrunid+ " \\\n"+
-    "-profile singularity -params-file "+args.out+"/"+seqrunid+"/atacseq_params.yaml -c /project/imoskowitz/shared/software/assets/test4.config \n")
+    "/project/imoskowitz/shared/software/nf-core-chipseq_2.1.0/2_1_0 -work-dir "+'/scratch/midway3/'+os.getlogin()+"/working_"+seqrunid+ " \\\n"+
+    "-profile singularity -params-file "+args.out+"/"+seqrunid+"/chipseq_params.yaml -c /project/imoskowitz/shared/software/assets/test4.config \n")
     print("\n\nnfcore files have been sent to "+args.out+"/"+seqrunid+"\n\n")
 
 else:
@@ -75,16 +75,16 @@ else:
         os.makedirs(args.out+"/"+expid)
     merged_df = pd.merge(processed_dataframe, sample_sheet, on='sampleID', how='left')
     if 'fastq_2' in merged_df.columns:
-        merged_df = merged_df[['sample', 'fastq_1', 'fastq_2', 'replicate','sampleID']]
+        merged_df = merged_df[['sample', 'fastq_1', 'fastq_2', 'replicate','antibody','control','control_replicate','sampleID']]
     else:
-        merged_df = merged_df[['sample', 'fastq_1', 'replicate','sampleID']]
+        merged_df = merged_df[['sample', 'fastq_1', 'replicate','antibody','control','control_replicate','sampleID']]
     merged_df.to_csv(args.out + "/" + expid + "/" + "sample.sheet.csv", sep=',', index=False)
     input_path = args.out+"/"+expid+"/"+"sample.sheet.csv"
     output_dir = args.out+"/"+expid
     out_yaml_file = args.out+"/"+expid+'/atacseq_params.yaml'
     update_yaml(yaml_file, input_path, output_dir, out_yaml_file)
     slurm_writer(pbsDir = args.out+"/"+expid, 
-    seed = "nfcore_bulk_atacseq_run_"+date.today().strftime("%y%m%d"), 
+    seed = "nfcore_bulk_chipseq_run_"+date.today().strftime("%y%m%d"), 
     nodes = str(1),
     walltime = str(24), 
     processors = str(4),
@@ -97,7 +97,7 @@ else:
     'export NXF_TEMP="/scratch/midway3/'+os.getlogin()+'"\n\n'+
     'export NXF_SINGULARITY_CACHEDIR="/project/imoskowitz/shared/software/singularityImages"', 
     shell = "nextflow run \\\n"+
-    "/project/imoskowitz/shared/software/nf-core-atacseq_2.1.2/2_1_2 -work-dir "+'/scratch/midway3/'+os.getlogin()+"/working_"+expid+ " \\\n"+
+    "/project/imoskowitz/shared/software/nf-core-chipseq_2.1.0/2_1_0 -work-dir "+'/scratch/midway3/'+os.getlogin()+"/working_"+expid+ " \\\n"+
     "-profile singularity -params-file "+args.out+"/"+expid+"/atacseq_params.yaml -c /project/imoskowitz/shared/software/assets/test4.config \n")
     print("\n\nnfcore files have been sent to "+args.out+"/"+expid+"\n\n")
 

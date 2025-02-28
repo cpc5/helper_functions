@@ -105,8 +105,9 @@ def process_chip_sample_sheet(sample_sheet):
     sample_sheet['antibody'] = ''
     sample_sheet['control'] = ''
     sample_sheet['control_replicate'] = sample_sheet['replicate']
-    mask_input = sample_sheet['Sample name'].str.contains('input', case=False, na=False)
+    sample_sheet = sample_sheet[['sample','sampleID','replicate','antibody','control','control_replicate']].dropna()
+    mask_input = sample_sheet['sample'].str.contains('input', case=False, na=False)
     sample_sheet.loc[~mask_input, 'antibody'] = 'FLAG'
-    sample_sheet.loc[~mask_input, 'control'] = sample_sheet.loc[~mask_input, 'sample'].astype(str) + '_INPUT'
+    sample_sheet.loc[~mask_input, 'control'] = sample_sheet.loc[mask_input, 'sample'].iloc[0]
     sample_sheet = sample_sheet[['sample','sampleID','replicate','antibody','control','control_replicate']].dropna()
     return sample_sheet

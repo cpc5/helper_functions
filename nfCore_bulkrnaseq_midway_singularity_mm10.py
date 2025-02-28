@@ -28,7 +28,7 @@ parser.add_argument("-o", "--out", type=str, default="/project/imoskowitz/shared
     help="specify output destination, but you better not unless youre sure!")
 
 args = parser.parse_args()
-yaml_file = "/project/imoskowitz/shared/software/assets/nfcore_bulkRNAseq_mouse_params_v2.yaml"
+yaml_file = "/project/imoskowitz/shared/software/assets/nfcore_bulkRNAseq_mm10.yaml"
 
 
 if len(args.msheet) < 2:

@@ -25,7 +25,7 @@ parser.add_argument("-o", "--out", type=str, default="/project/imoskowitz/shared
     help="specify output destination, but you better not unless youre sure!")
 
 args = parser.parse_args()
-yaml_file = "/project/imoskowitz/shared/software/assets/nfcore_atacseq_params_finalrun.yaml"
+yaml_file = "/project/imoskowitz/shared/software/assets/nfcore_atacseq_params_mm10.yaml"
 
 sample_sheet = pd.read_excel(args.ssheet)
 sample_sheet = process_sample_sheet(sample_sheet)
