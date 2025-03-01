@@ -111,3 +111,48 @@ def process_chip_sample_sheet(sample_sheet):
     sample_sheet.loc[~mask_input, 'control'] = sample_sheet.loc[mask_input, 'sample'].iloc[0]
     sample_sheet = sample_sheet[['sample','sampleID','replicate','antibody','control','control_replicate']].dropna()
     return sample_sheet
+
+def process_chip_sample_sheet(sample_sheet):
+    sample_sheet.columns = sample_sheet.columns.str.replace('Sample name.*', 'Sample name', regex=True)
+    sample_sheet = sample_sheet[~sample_sheet.isin(['x']).any(axis=1)].iloc[2:]
+    sample_sheet["sampleID"] = sample_sheet["Experiment ID"] + "_" + sample_sheet["Sample ID"]
+    sample_sheet['replicate'] = sample_sheet['Sample name'].str.split('_').str[-1]
+    sample_sheet['sample'] = sample_sheet['Sample name'].str.rsplit('_', 1).str[0]
+    sample_sheet['antibody'] = ''
+    sample_sheet['control'] = ''
+    sample_sheet['control_replicate'] = sample_sheet['replicate']
+    sample_sheet = sample_sheet[['sample','sampleID','replicate','antibody','control','control_replicate']].dropna()
+    mask_input = sample_sheet['sample'].str.contains('input', case=False, na=False)
+    sample_sheet.loc[~mask_input, 'antibody'] = 'FLAG'
+    for idx in sample_sheet[~mask_input].index:
+        sample_name = sample_sheet.loc[idx, 'sample']
+        sample_rep = sample_sheet.loc[idx, 'replicate']
+        expected_input_name = sample_name.replace('FLAG', 'input').replace('flag', 'input')
+        matching_inputs = sample_sheet[
+            mask_input & 
+            sample_sheet['sample'].str.contains(expected_input_name.split('_')[0], case=False)
+        ]
+        if len(matching_inputs) > 1:
+            exact_matches = matching_inputs[
+                matching_inputs['sample'].str.lower() == expected_input_name.lower()
+            ]
+            if not exact_matches.empty:
+                matching_inputs = exact_matches
+            else:
+                for part in expected_input_name.split('_')[1:]:
+                    if part.lower() not in ['flag', 'input']:
+                        better_matches = matching_inputs[
+                            matching_inputs['sample'].str.contains(part, case=False)
+                        ]
+                        if not better_matches.empty:
+                            matching_inputs = better_matches
+        if not matching_inputs.empty:
+            rep_match = matching_inputs[matching_inputs['replicate'] == sample_rep]
+            if not rep_match.empty:
+                sample_sheet.loc[idx, 'control'] = rep_match['sample'].iloc[0]
+                sample_sheet.loc[idx, 'control_replicate'] = rep_match['replicate'].iloc[0]
+            else:
+                sample_sheet.loc[idx, 'control'] = matching_inputs['sample'].iloc[0]
+                sample_sheet.loc[idx, 'control_replicate'] = matching_inputs['replicate'].iloc[0]
+    sample_sheet = sample_sheet[['sample','sampleID','replicate','antibody','control','control_replicate']].dropna()
+    return sample_sheet
