@@ -564,25 +564,27 @@ simplify=TRUE) {
 
 require(dplyr)
 require(ggplot2)
+require(readr)
 require(clusterProfiler)
 require(org.Mm.eg.db)
 require(org.Hs.eg.db)
 
 if(organism=='mouse') {
   OrgDb='org.Mm.eg.db'
-  eg <- read_csv("/project/imoskowitz/shared/annotations/iGenomes/Mus_musculus/mart_cpc.csv")
+  eg <- read_csv("/project/imoskowitz/shared/annotations/iGenomes/Mus_musculus/Mus_musculus.gene_info_edit.csv")
   } else {
   OrgDb='org.Hs.eg.db'
-  eg <- read_csv("/project/imoskowitz/shared/annotations/iGenomes/Homo_sapiens/mart_export_human.csv")
+  eg <- read_csv("/project/imoskowitz/shared/annotations/iGenomes/Homo_sapiens/Homo_sapiens.gene_info_edit.csv")
   }
 
 
+eg$GeneID <- as.character(eg$GeneID)
 
-eg$NCBI <- as.character(eg$NCBI)
+univr_vector <- subset(eg, Symbol %in% univr_vector | splt_syn %in% univr_vector)$GeneID %>% unique()
+test.vector <- subset(eg, Symbol %in% test.vector | splt_syn %in% test.vector)$GeneID %>% unique()
 
-univr_vector <- subset(eg, gene_id %in% univr_vector)$NCBI
 
-goPATH <- enrichGO(gene=as.vector(subset(eg, gene_id %in% test.vector)$NCBI), 
+goPATH <- enrichGO(gene=test.vector, 
 OrgDb = OrgDb, 
 universe=univr_vector,
 ont=ont,
@@ -592,10 +594,10 @@ qvalueCutoff  = 0.05)
 
 goPATH <- setReadable(goPATH, OrgDb = OrgDb)
 
-if(simplify) {
-   goPATH <- simplify(goPATH)
- }
-
+ if(simplify) {
+    goPATH <- simplify(goPATH)
+  }
+  
 goPATH@result <-  goPATH@geneSets %>% 
 lapply(. ,length) %>% 
 unlist %>% 
@@ -739,7 +741,8 @@ p.col <- grep('padj|FDR|p_val_adj', colnames(df))
 df$logp <-  -log10( df[[p.col]] )
 df$lfc <-  df[[lfc]]
 
-maxlfc <- range( df$lfc , finite=T , na.rm=T) %>% max()
+maxlfc <- max(abs(df$lfc), na.rm = TRUE)
+
 lfc_breaks <- seq(-maxlfc, maxlfc, length.out=8) %>% round_any(accuracy=2, x=.)
 
 maxpadj <- range(df$logp , finite=T , na.rm=T)[2]
