@@ -835,7 +835,7 @@ load_metadata <- function(metadata_path) {
   rownames(metadata) <- paste0(metadata$Experiment.ID, "_", metadata$Sample.ID)
 
   metadata <- metadata %>%
-  mutate(treatment = factor(case_when(grepl("dox|tmx|ko|oe", Sample.name, ignore.case = TRUE) ~ str_extract(tolower(Sample.name), "dox|tmx|ko|oe"),
+  mutate(treatment = factor(case_when(grepl("dox|tmx|ko|oe|ra|sag", Sample.name, ignore.case = TRUE) ~ str_extract(tolower(Sample.name), "dox|tmx|ko|oe|ra|sag"),
         TRUE ~ "ctrl"
          )))
   metadata$condition <- sub("_[^_]+$", "", metadata$Sample.name)
